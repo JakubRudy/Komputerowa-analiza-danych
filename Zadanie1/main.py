@@ -1,5 +1,5 @@
 import csv
-import math
+import miaryStatystyczne
 
 with open("data1.csv", "r") as file:
     reader = csv.reader(file, delimiter=",", quotechar='"')
@@ -35,45 +35,3 @@ minDlugoscDzialkiKielicha = min(dlugoscDzialkiKielicha)
 minSzerokoscDzialkiKielicha = min(szerokoscDzialkiKielicha)
 minDlugoscPlatka = min(dlugoscPlatka)
 minSzerokoscPlatka = min(szerokoscPlatka)
-
-def sredniaArytmetyczna(zbior):
-    return sum(zbior) / len(zbior)
-
-def odchylenieStandardowe(zbior):
-    srednia = sredniaArytmetyczna(zbior)
-    wariancja = 0
-    for x in zbior:
-        wariancja += (x - srednia) ** 2
-    wariancja /= len(zbior)
-    return math.sqrt(wariancja)
-
-def mediana(zbior):
-    zbior = sorted(zbior)
-    polowa = len(zbior) // 2
-    if len(zbior) % 2 == 0:
-        return (zbior[polowa] + zbior[polowa - 1]) / 2
-    else:
-        return zbior[polowa]
-
-def normalizacja(zbior):
-    wynik = []
-    maksimum = max(zbior)
-    minimum = min(zbior)
-    mianownik = maksimum - minimum
-    for x in zbior:
-        # Normalizacja do przedziału [-1, 1]
-        wynik.append((2 * ((x - minimum) / mianownik)) - 1)
-    return wynik
-
-def pearson(zbiora, zbiorb):
-    sredniaZbiorA = sredniaArytmetyczna(zbiora)
-    sredniaZbiorB = sredniaArytmetyczna(zbiorb)
-    odchylenia = []
-
-    for x, y in zip(zbiora, zbiorb):
-        x -= sredniaZbiorA
-        y -= sredniaZbiorB
-        odchylenia.append(x * y)
-
-    kowariancja = sum(odchylenia) / len(odchylenia)
-    return kowariancja / (odchylenieStandardowe(zbiora) * odchylenieStandardowe(zbiorb))
