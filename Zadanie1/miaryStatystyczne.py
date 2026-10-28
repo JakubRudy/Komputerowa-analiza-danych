@@ -8,16 +8,30 @@ def odchylenieStandardowe(zbior):
     wariancja = 0
     for x in zbior:
         wariancja += (x - srednia) ** 2
-    wariancja /= len(zbior)
+    wariancja /= len(zbior) - 1
     return math.sqrt(wariancja)
 
 def mediana(zbior):
     zbior = sorted(zbior)
     polowa = len(zbior) // 2
+
     if len(zbior) % 2 == 0:
         return (zbior[polowa] + zbior[polowa - 1]) / 2
     else:
         return zbior[polowa]
+
+
+def kwartyle(zbior):
+    zbior = sorted(zbior)
+    polowa = len(zbior) // 2
+
+    q1 = mediana(zbior[:polowa])
+
+    if len(zbior) % 2 == 0:
+        q3 = mediana(zbior[polowa:])
+    else:
+        q3 = mediana(zbior[polowa + 1:])
+    return q1, q3
 
 def normalizacja(zbior):
     wynik = []
@@ -48,18 +62,13 @@ def pearson(zbiora, zbiorb):
 
 def regresjaLiniowa(zbiora, zbiorb):
     aLicznik = kowariancja(zbiora, zbiorb)
-
     aMianownik = 0
     xSrednia = sredniaArytmetyczna(zbiora)
     for x in zbiora:
         aMianownik += (x - xSrednia) ** 2
 
     aMianownik /= len(zbiora)
-
     a = aLicznik / aMianownik
-
     ySrednia = sredniaArytmetyczna(zbiorb)
-
     b = ySrednia - a * xSrednia
-
     return a, b
