@@ -1,7 +1,9 @@
 import math
 
+
 def srednia_arytmetyczna(zbior):
     return sum(zbior) / len(zbior)
+
 
 def odchylenie_standardowe(zbior):
     srednia = srednia_arytmetyczna(zbior)
@@ -10,6 +12,7 @@ def odchylenie_standardowe(zbior):
         wariancja += (x - srednia) ** 2
     wariancja /= len(zbior) - 1
     return math.sqrt(wariancja)
+
 
 def mediana(zbior):
     zbior = sorted(zbior)
@@ -20,6 +23,7 @@ def mediana(zbior):
     else:
         return zbior[polowa]
 
+
 def kwartyle(zbior):
     zbior = sorted(zbior)
     polowa = len(zbior) // 2
@@ -29,8 +33,9 @@ def kwartyle(zbior):
     if len(zbior) % 2 == 0:
         q3 = mediana(zbior[polowa:])
     else:
-        q3 = mediana(zbior[polowa + 1:])
+        q3 = mediana(zbior[polowa + 1 :])
     return q1, q3
+
 
 def normalizacja(zbior):
     wynik = []
@@ -40,6 +45,7 @@ def normalizacja(zbior):
     for x in zbior:
         wynik.append((2 * ((x - minimum) / mianownik)) - 1)
     return wynik
+
 
 def kowariancja(zbiora, zbiorb):
     sredniaZbiorA = srednia_arytmetyczna(zbiora)
@@ -51,11 +57,15 @@ def kowariancja(zbiora, zbiorb):
         y -= sredniaZbiorB
         odchylenia.append(x * y)
 
-    return sum(odchylenia) / (len(odchylenia) -1)
+    return sum(odchylenia) / (len(odchylenia) - 1)
+
 
 def pearson(zbiora, zbiorb):
     kowariancjaWynik = kowariancja(zbiora, zbiorb)
-    return kowariancjaWynik / (odchylenie_standardowe(zbiora) * odchylenie_standardowe(zbiorb))
+    return kowariancjaWynik / (
+        odchylenie_standardowe(zbiora) * odchylenie_standardowe(zbiorb)
+    )
+
 
 def regresjaLiniowa(zbiora, zbiorb):
     aLicznik = kowariancja(zbiora, zbiorb)

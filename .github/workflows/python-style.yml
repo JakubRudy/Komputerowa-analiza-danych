@@ -1,0 +1,27 @@
+name: Python Code Quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check-python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Komputerowa-analiza-danych
+        uses: actions/checkout@v7
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Instalacja Ruff
+        run: pip install ruff
+
+      - name: Sprawdzenie jakości kodu
+        run: ruff check .
+
+      - name: Sprawdzenie formatowania
+        run: ruff format --check .
