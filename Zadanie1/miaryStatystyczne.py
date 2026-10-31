@@ -1,10 +1,10 @@
 import math
 
-def sredniaArytmetyczna(zbior):
+def srednia_arytmetyczna(zbior):
     return sum(zbior) / len(zbior)
 
-def odchylenieStandardowe(zbior):
-    srednia = sredniaArytmetyczna(zbior)
+def odchylenie_standardowe(zbior):
+    srednia = srednia_arytmetyczna(zbior)
     wariancja = 0
     for x in zbior:
         wariancja += (x - srednia) ** 2
@@ -19,7 +19,6 @@ def mediana(zbior):
         return (zbior[polowa] + zbior[polowa - 1]) / 2
     else:
         return zbior[polowa]
-
 
 def kwartyle(zbior):
     zbior = sorted(zbior)
@@ -39,13 +38,12 @@ def normalizacja(zbior):
     minimum = min(zbior)
     mianownik = maksimum - minimum
     for x in zbior:
-        # Normalizacja do przedziału [-1, 1]
         wynik.append((2 * ((x - minimum) / mianownik)) - 1)
     return wynik
 
 def kowariancja(zbiora, zbiorb):
-    sredniaZbiorA = sredniaArytmetyczna(zbiora)
-    sredniaZbiorB = sredniaArytmetyczna(zbiorb)
+    sredniaZbiorA = srednia_arytmetyczna(zbiora)
+    sredniaZbiorB = srednia_arytmetyczna(zbiorb)
     odchylenia = []
 
     for x, y in zip(zbiora, zbiorb):
@@ -53,22 +51,21 @@ def kowariancja(zbiora, zbiorb):
         y -= sredniaZbiorB
         odchylenia.append(x * y)
 
-    return sum(odchylenia) / len(odchylenia)
+    return sum(odchylenia) / (len(odchylenia) -1)
 
 def pearson(zbiora, zbiorb):
-
     kowariancjaWynik = kowariancja(zbiora, zbiorb)
-    return kowariancjaWynik / (odchylenieStandardowe(zbiora) * odchylenieStandardowe(zbiorb))
+    return kowariancjaWynik / (odchylenie_standardowe(zbiora) * odchylenie_standardowe(zbiorb))
 
 def regresjaLiniowa(zbiora, zbiorb):
     aLicznik = kowariancja(zbiora, zbiorb)
     aMianownik = 0
-    xSrednia = sredniaArytmetyczna(zbiora)
+    xSrednia = srednia_arytmetyczna(zbiora)
     for x in zbiora:
         aMianownik += (x - xSrednia) ** 2
 
     aMianownik /= len(zbiora)
     a = aLicznik / aMianownik
-    ySrednia = sredniaArytmetyczna(zbiorb)
+    ySrednia = srednia_arytmetyczna(zbiorb)
     b = ySrednia - a * xSrednia
     return a, b
