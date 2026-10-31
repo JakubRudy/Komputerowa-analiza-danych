@@ -1,138 +1,113 @@
 import csv
-
 import matplotlib.pyplot as plt
-import miaryStatystyczne
+import pandas as pd
+
+import miary_statystyczne
 
 
 def fmt(val):
     return f"{val:.2f}".replace(".", ",")
 
 
-def rysowanie_histogramu(dane, k, xPodpis, yPodpis, tytul):
-    minimum = min(dane)
-    maksimum = max(dane)
+def rysowanie_histogramu(ax, dane, k, xPodpis, yPodpis, tytul, zakres=None):
+    if zakres is not None:
+        minimum, maksimum = zakres
+    else:
+        minimum = min(dane)
+        maksimum = max(dane)
 
     szerokosc = (maksimum - minimum) / k
-
     podzialka = [minimum + i * szerokosc for i in range(k + 1)]
 
-    plt.xticks(podzialka)
-
     licznosci = [0] * k
-
     for x in dane:
         indeks = int((x - minimum) / szerokosc)
-
-        if indeks == k:
+        if indeks >= k:
             indeks = k - 1
-
+        elif indeks < 0:
+            indeks = 0
         licznosci[indeks] += 1
 
     granice = [minimum + i * szerokosc for i in range(k)]
-    plt.bar(granice, licznosci, width=szerokosc, align="edge", edgecolor="black")
 
-    plt.xlabel(xPodpis)
-    plt.ylabel(yPodpis)
-    plt.title(tytul)
+    ax.bar(granice, licznosci, width=szerokosc, align="edge", edgecolor="black")
 
-    plt.show()
-    return 0
+    # Formatowanie podziałki, żeby uniknąć długich ułamków typu 0.3125
+    ax.set_xticks(podzialka)
+    ax.set_xticklabels([f"{val:.2f}".rstrip('0').rstrip('.') if val % 0.5 != 0 else f"{val:.1f}" for val in podzialka])
 
+    ax.set_xlabel(xPodpis)
+    ax.set_ylabel(yPodpis)
+    ax.set_title(tytul)
 
-def rysowanie_wykresu(x, y, xPodpis, yPodpis):
-    plt.scatter(x, y)
-    r = miaryStatystyczne.pearson(x, y)
-    a, b = miaryStatystyczne.regresjaLiniowa(x, y)
+    # Automatyczne dopasowanie wysokości osi Y z lekkim zapasem nad najwyższym słupkiem
+    ax.set_ylim(0, max(licznosci) + 4)
 
-    noweY = [a * x[i] + b for i in range(len(x))]
-
-    plt.plot(x, noweY, "r-")
-    plt.xlabel(xPodpis)
-    plt.ylabel(yPodpis)
-    plt.title(f"r = {r:.2f}; y = {a:.2f}x {b:+.2f}")
-    plt.show()
-    return 0
+def rysowanie_pudelkowego(ax, x, y, z, yPodpis):
+    ax.boxplot([x, y, z], tick_labels=["setosa", "versicolor", "virginica"])  #[cite: 1]
+    ax.set_ylabel(yPodpis)  #[cite: 1]
+    ax.set_xlabel("Gatunek")  #[cite: 1]
 
 
 def main():
-    plt.rcParams["axes.titlesize"] = 18
-    plt.rcParams["axes.labelsize"] = 14
-    plt.rcParams["xtick.labelsize"] = 12
-    plt.rcParams["ytick.labelsize"] = 12
-    plt.rcParams["legend.fontsize"] = 12
+    df = pd.read_csv(
+        "data1.csv",
+        header=None,
+        names=[
+            "Długość działki kielicha",
+            "Szerokość działki kielicha",
+            "Długość płatka",
+            "Szerokość płatka",
+            "Gatunek",
+        ],
+    )
 
-    with open("data1.csv", "r") as file:
-        reader = csv.reader(file, delimiter=",", quotechar='"')
-        data = [[float(x) for x in row] for row in reader]
+    print(
+        f"Setosa: {(df['Gatunek'] == 0).sum()}\n"
+        f"Versicolor: {(df['Gatunek'] == 1).sum()}\n"
+        f"Virginica: {(df['Gatunek'] == 2).sum()}\n"
+    )
 
-    dlugosc_dzialki = []
-    szerokosc_dzialki = []
-    dlugosc_platka = []
-    szerokosc_platka = []
-    setosa = 0
-    versicolor = 0
-    virginica = 0
-
-    for row in data:
-        dlugosc_dzialki.append(row[0])
-        szerokosc_dzialki.append(row[1])
-        dlugosc_platka.append(row[2])
-        szerokosc_platka.append(row[3])
-        if row[4] == 0.0:
-            setosa += 1
-        elif row[4] == 1.0:
-            versicolor += 1
-        elif row[4] == 2.0:
-            virginica += 1
-
-    print(f"Setosa: {setosa}\nVersicolor: {versicolor}\nVirginica: {virginica}\n")
-
-    cechy = [
-        ("Długość działki kielicha (cm)", dlugosc_dzialki),
-        ("Szerokość działki kielicha (cm)", szerokosc_dzialki),
-        ("Długość płatka (cm)", dlugosc_platka),
-        ("Szerokość płatka (cm)", szerokosc_platka),
+    # Konfiguracja podpisów osi i zakresów dla poszczególnych cech
+    konfiguracja = [
+        ("Długość działki kielicha", "Długość (cm)", (4.0, 8.0)),
+        ("Szerokość działki kielicha", "Szerokość (cm)", (2.0, 4.4)),
+        ("Długość płatka", "Długość (cm)", (1.0, 7.0)),
+        ("Szerokość płatka", "Szerokość (cm)", (0.0, 2.5)),
     ]
 
-    wiersze_tabeli = []
+    # Tworzenie siatki 4 wiersze x 2 kolumny
+    fig, axes = plt.subplots(4, 2, figsize=(8, 10))
 
-    for nazwa, zbior in cechy:
-        minimum = min(zbior)
-        maksimum = max(zbior)
-        srednia = miaryStatystyczne.sredniaArytmetyczna(zbior)
-        odchylenie = miaryStatystyczne.odchylenieStandardowe(zbior)
-        med = miaryStatystyczne.mediana(zbior)
-        q1, q3 = miaryStatystyczne.kwartyle(zbior)
+    for i, (kolumna, podpis_osi, zakres) in enumerate(konfiguracja):
+        dane = df[kolumna]
 
-        wiersze_tabeli.append(
-            {
-                "Cecha": nazwa,
-                "Minimum": fmt(minimum),
-                "Śr. arytm. (± odch. stand.)": f"{fmt(srednia)} (±{fmt(odchylenie)})",
-                "Mediana (Q1 - Q3)": f"{fmt(med)} ({fmt(q1)} - {fmt(q3)})",
-                "Maksimum": fmt(maksimum),
-            }
+        print(
+            f"{kolumna}:\t\t"
+            f"{min(dane):.2f}\t"
+            f"{miary_statystyczne.srednia_arytmetyczna(dane):.2f} ± ({miary_statystyczne.odchylenie_standardowe(dane):.2f})\t"
+            f"{miary_statystyczne.mediana(dane):.2f} {miary_statystyczne.kwartyle(dane)}\t"
+            f"{max(dane):.2f}"
         )
 
-    rysowanie_histogramu(
-        dlugosc_dzialki, 8, "Długość (cm)", "Liczebność", "Długość działki kielicha"
-    )
-    rysowanie_wykresu(
-        dlugosc_dzialki,
-        szerokosc_dzialki,
-        "Długość działki kielicha",
-        "Szerokość działki kielicha",
-    )
+        # Podział danych na 3 gatunki do wykresu pudełkowego
+        setosa = df[df["Gatunek"] == 0][kolumna]
+        versicolor = df[df["Gatunek"] == 1][kolumna]
+        virginica = df[df["Gatunek"] == 2][kolumna]
 
-    rysowanie_histogramu(
-        szerokosc_dzialki, 8, "Długość (cm)", "Liczebność", "Szerokość działki kielicha"
-    )
-    rysowanie_histogramu(
-        dlugosc_platka, 8, "Długość (cm)", "Liczebność", "Długość płatka kielicha"
-    )
-    rysowanie_histogramu(
-        szerokosc_platka, 8, "Długość (cm)", "Liczebność", "Szerokość płatka kielicha"
-    )
+        # Lewa kolumna (indeks 0): Histogram
+        rysowanie_histogramu(
+            axes[i, 0], dane, 8, podpis_osi, "Liczebność", kolumna, zakres=zakres
+        )
+
+        # Prawa kolumna (indeks 1): Wykres pudełkowy
+        rysowanie_pudelkowego(
+            axes[i, 1], setosa, versicolor, virginica, podpis_osi
+        )
+
+    # Automatyczne dopasowanie odstępów między wykresami, aby napisy na siebie nie nachodziły
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
